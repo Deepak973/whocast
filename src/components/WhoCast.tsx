@@ -73,7 +73,7 @@ export default function WhoCast() {
 
       try {
         const response = await fetch(
-          `/api/following?limit=500&fid=${context.user.fid}`
+          `/api/following?limit=100&fid=${context.user.fid}`
         );
 
         if (!response.ok) {

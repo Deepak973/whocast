@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMiniApp } from "@neynar/react";
 import { Button } from "~/components/ui/Button";
 import { ShareButton } from "~/components/ui/Share";
+import { APP_URL } from "~/lib/constants";
 
 interface Friend {
   user: {
@@ -54,6 +55,8 @@ export default function WhoCast() {
     answers: {},
   });
   const [following, setFollowing] = useState<Friend[]>([]);
+  const [filteredFollowing, setFilteredFollowing] = useState<Friend[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,6 +100,22 @@ export default function WhoCast() {
 
     fetchFollowing();
   }, [context?.user?.fid]);
+
+  // Filter friends based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredFollowing(following);
+    } else {
+      const filtered = following.filter(
+        (friend) =>
+          friend.user.display_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          friend.user.username.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredFollowing(filtered);
+    }
+  }, [following, searchQuery]);
 
   // Generate quiz questions
   const generateQuiz = useCallback(async (selectedFriends: Friend[]) => {
@@ -253,8 +272,9 @@ export default function WhoCast() {
       return `I scored ${gameState.score}/${gameState.questions.length} on WhoCast! Can you beat my score? 🎯`;
     }
 
+    // Include usernames with @ for proper tagging
     const friendNames = gameState.selectedFriends
-      .map((friend) => friend.user.display_name)
+      .map((friend) => `${friend.user.display_name} (@${friend.user.username})`)
       .join(", ");
 
     const percentage = Math.round(
@@ -278,11 +298,13 @@ export default function WhoCast() {
 
         return `${index + 1}. ${isCorrect ? "✅" : "❌"} ${
           question.correctFriend.user.display_name
-        } (You guessed: ${selectedFriend?.user.display_name || "Unknown"})`;
+        } (@${question.correctFriend.user.username}) (You guessed: ${
+          selectedFriend?.user.display_name || "Unknown"
+        })`;
       })
       .join("\n");
 
-    // Create friend performance summary
+    // Create friend performance summary with usernames
     const friendPerformance = gameState.selectedFriends
       .map((friend) => {
         const friendQuestions = gameState.questions.filter(
@@ -298,7 +320,7 @@ export default function WhoCast() {
             ? Math.round((correctGuesses / totalQuestions) * 100)
             : 0;
 
-        return `${friend.user.display_name}: ${correctGuesses}/${totalQuestions} (${accuracy}%)`;
+        return `${friend.user.display_name} (@${friend.user.username}): ${correctGuesses}/${totalQuestions} (${accuracy}%)`;
       })
       .join("\n");
 
@@ -389,14 +411,14 @@ ${questionBreakdown}
                 />
               </div>
               <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">
-                Loading your friends...
+                Loading your Quiz...
               </p>
             </div>
           )}
 
           {/* Friend Selection Screen */}
           {!gameState.gameStarted && !loading && (
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="text-center">
                 <div className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                   <h2 className="text-2xl font-bold mb-2">
@@ -411,54 +433,97 @@ ${questionBreakdown}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto p-2">
-                {following.map((friend) => {
-                  const isSelected = gameState.selectedFriends.some(
-                    (f) => f.user.fid === friend.user.fid
-                  );
+              {/* Search Bar */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search friends by name or username..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
 
-                  return (
-                    <button
-                      key={friend.user.fid}
-                      onClick={() => toggleFriend(friend)}
-                      disabled={
-                        !isSelected && gameState.selectedFriends.length >= 5
-                      }
-                      className={`flex items-center p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-105 ${
-                        isSelected
-                          ? "bg-gradient-to-r from-purple-100 to-pink-100 border-purple-400 dark:from-purple-900/30 dark:to-pink-900/30 dark:border-purple-500 shadow-lg"
-                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-md"
-                      } ${
-                        !isSelected && gameState.selectedFriends.length >= 5
-                          ? "opacity-50 cursor-not-allowed"
-                          : "cursor-pointer"
-                      }`}
-                    >
-                      <div className="relative">
-                        <img
-                          src={friend.user.pfp_url}
-                          alt={friend.user.display_name}
-                          className="w-12 h-12 rounded-full mr-4 ring-2 ring-gray-200 dark:ring-gray-700"
-                        />
-                        {isSelected && (
-                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">
-                              ✓
-                            </span>
-                          </div>
-                        )}
+              {/* Friends List with Fixed Height */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="max-h-64 overflow-y-auto p-2">
+                  {filteredFollowing.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-gray-500 dark:text-gray-400 text-sm">
+                        {searchQuery.trim()
+                          ? "No friends found matching your search"
+                          : "Loading friends..."}
                       </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-gray-900 dark:text-white">
-                          {friend.user.display_name}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          @{friend.user.username}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3">
+                      {filteredFollowing.map((friend) => {
+                        const isSelected = gameState.selectedFriends.some(
+                          (f) => f.user.fid === friend.user.fid
+                        );
+
+                        return (
+                          <button
+                            key={friend.user.fid}
+                            onClick={() => toggleFriend(friend)}
+                            disabled={
+                              !isSelected &&
+                              gameState.selectedFriends.length >= 5
+                            }
+                            className={`flex items-center p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                              isSelected
+                                ? "bg-gradient-to-r from-purple-100 to-pink-100 border-purple-400 dark:from-purple-900/30 dark:to-pink-900/30 dark:border-purple-500 shadow-lg"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-md"
+                            } ${
+                              !isSelected &&
+                              gameState.selectedFriends.length >= 5
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer"
+                            }`}
+                          >
+                            <div className="relative">
+                              <img
+                                src={friend.user.pfp_url}
+                                alt={friend.user.display_name}
+                                className="w-12 h-12 rounded-full mr-4 ring-2 ring-gray-200 dark:ring-gray-700"
+                              />
+                              {isSelected && (
+                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">
+                                    ✓
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-left flex-1">
+                              <div className="font-semibold text-gray-900 dark:text-white">
+                                {friend.user.display_name}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                @{friend.user.username}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="mt-8">
@@ -785,7 +850,10 @@ ${questionBreakdown}
                     cast={{
                       text: generateShareText(),
                       embeds: [
-                        `${process.env.NEXT_PUBLIC_URL}/share/${context.user.fid}`,
+                        {
+                          path: "/",
+                          url: APP_URL,
+                        },
                       ],
                     }}
                     className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg"

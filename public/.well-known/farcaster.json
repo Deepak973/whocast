@@ -10,6 +10,7 @@
     "description": "Guess which friend dropped the cast!",
     "primaryCategory": "social"
   },
+
   "accountAssociation": {
     "header": "eyJmaWQiOjY3MzEyNiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRmMjBEMDk0NWEwQWFlMjVkNDA2Q2QxYTIyN2JBOGE5OUNCODYzOEYifQ",
     "payload": "eyJkb21haW4iOiJ3aG9jYXN0LnZlcmNlbC5hcHAifQ",

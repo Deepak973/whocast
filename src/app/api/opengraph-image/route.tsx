@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
             />
           </div>
         )}
-        <h1 tw="text-8xl text-white">
-          {user?.display_name
-            ? `Hello from ${user.display_name ?? user.username}!`
-            : "Hello!"}
-        </h1>
+        <img
+          src="/whocastlogo.png"
+          alt="Logo"
+          tw="w-16 h-16 absolute top-4 left-4"
+        />
         <p tw="text-5xl mt-4 text-white opacity-80">
           Guess who dropped the cast! 🪐
         </p>

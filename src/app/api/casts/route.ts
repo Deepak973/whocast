@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { verifyAuth } from "~/lib/auth";
 
 export async function GET(request: Request) {
   const apiKey = process.env.NEYNAR_API_KEY;

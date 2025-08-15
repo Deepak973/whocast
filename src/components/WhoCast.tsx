@@ -267,11 +267,56 @@ export default function WhoCast() {
     else if (percentage >= 60) performanceEmoji = "👍";
     else performanceEmoji = "🤔";
 
-    return `🎭 WhoCast Results: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
+    // Create detailed breakdown of each question
+    const questionBreakdown = gameState.questions
+      .map((question, index) => {
+        const selectedFid = gameState.answers[question.cast.hash];
+        const isCorrect = selectedFid === question.correctFriend.user.fid;
+        const selectedFriend = gameState.selectedFriends.find(
+          (f) => f.user.fid === selectedFid
+        );
+
+        return `${index + 1}. ${isCorrect ? "✅" : "❌"} ${
+          question.correctFriend.user.display_name
+        } (You guessed: ${selectedFriend?.user.display_name || "Unknown"})`;
+      })
+      .join("\n");
+
+    // Create friend performance summary
+    const friendPerformance = gameState.selectedFriends
+      .map((friend) => {
+        const friendQuestions = gameState.questions.filter(
+          (q) => q.correctFriend.user.fid === friend.user.fid
+        );
+        const correctGuesses = friendQuestions.filter((q) => {
+          const selectedFid = gameState.answers[q.cast.hash];
+          return selectedFid === friend.user.fid;
+        }).length;
+        const totalQuestions = friendQuestions.length;
+        const accuracy =
+          totalQuestions > 0
+            ? Math.round((correctGuesses / totalQuestions) * 100)
+            : 0;
+
+        return `${friend.user.display_name}: ${correctGuesses}/${totalQuestions} (${accuracy}%)`;
+      })
+      .join("\n");
+
+    // Create a longer detailed version
+    const detailedVersion = `🎭 WhoCast Results: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
 
 👥 Friends tested: ${friendNames}
 
+📊 Friend Performance:
+${friendPerformance}
+
+📝 Question Breakdown:
+${questionBreakdown}
+
 🎮 Play WhoCast and see how well you know your friends! Can you beat my score?`;
+
+    // Return the detailed version for comprehensive sharing
+    return detailedVersion;
   }, [gameState]);
 
   // Reset game
@@ -298,243 +343,458 @@ export default function WhoCast() {
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
 
   return (
-    <div className="mx-auto py-2 px-4 pb-20">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-4">
-          <img
-            src="/whocastlogo.png"
-            alt="WhoCast"
-            className="h-16 mx-auto mb-2"
-          />
-        </div>
-        <p className="text-center text-muted-foreground mb-6">
-          Guess which friend wrote each cast!
-        </p>
-
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4 text-destructive text-center">
-            {error}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
+      <div className="mx-auto py-6 px-4 pb-20">
+        <div className="max-w-md mx-auto">
+          {/* Header with enhanced styling */}
+          <div className="text-center mb-8">
+            <div className="relative">
+              <img
+                src="/whocastlogo.png"
+                alt="WhoCast"
+                className="h-20 mx-auto mb-4 drop-shadow-lg animate-pulse"
+              />
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg blur opacity-20 animate-pulse"></div>
+            </div>
+            <p className="text-lg text-gray-700 dark:text-gray-300 mb-2 font-medium">
+              Test Your Friend Knowledge! 🧠
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Guess which friend wrote each cast and see how well you know them
+            </p>
           </div>
-        )}
 
-        {loading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-purple-600 border-t-transparent rounded-full" />
-          </div>
-        )}
+          {error && (
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-2 border-red-200 dark:border-red-700 rounded-xl p-6 mb-6 text-red-700 dark:text-red-300 text-center shadow-lg">
+              <div className="flex items-center justify-center mb-2">
+                <span className="text-2xl mr-2">⚠️</span>
+                <span className="font-semibold">
+                  Oops! Something went wrong
+                </span>
+              </div>
+              <p className="text-sm">{error}</p>
+            </div>
+          )}
 
-        {/* Friend Selection Screen */}
-        {!gameState.gameStarted && !loading && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Select 5-8 Friends</h2>
-              <p className="text-sm text-muted-foreground">
-                Choose friends to create your 10-question quiz
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="relative">
+                <div className="animate-spin h-12 w-12 border-4 border-purple-600 border-t-transparent rounded-full" />
+                <div
+                  className="absolute inset-0 animate-spin h-12 w-12 border-4 border-pink-600 border-t-transparent rounded-full"
+                  style={{
+                    animationDirection: "reverse",
+                    animationDuration: "1.5s",
+                  }}
+                />
+              </div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400 font-medium">
+                Loading your friends...
               </p>
             </div>
+          )}
 
-            <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
-              {following.map((friend) => {
-                const isSelected = gameState.selectedFriends.some(
-                  (f) => f.user.fid === friend.user.fid
-                );
-
-                return (
-                  <button
-                    key={friend.user.fid}
-                    onClick={() => toggleFriend(friend)}
-                    disabled={
-                      !isSelected && gameState.selectedFriends.length >= 8
-                    }
-                    className={`flex items-center p-3 rounded-lg border transition-all ${
-                      isSelected
-                        ? "bg-purple-100 border-purple-300 dark:bg-purple-900/20 dark:border-purple-700"
-                        : "bg-card border-border hover:bg-accent"
-                    } ${
-                      !isSelected && gameState.selectedFriends.length >= 8
-                        ? "opacity-50"
-                        : ""
-                    }`}
-                  >
-                    <img
-                      src={friend.user.pfp_url}
-                      alt={friend.user.display_name}
-                      className="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div className="text-left">
-                      <div className="font-medium">
-                        {friend.user.display_name}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        @{friend.user.username}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <div className="ml-auto text-purple-600">✓</div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            <Button
-              onClick={() => generateQuiz(gameState.selectedFriends)}
-              disabled={gameState.selectedFriends.length < 5}
-              className="mt-6"
-            >
-              Start Quiz ({gameState.selectedFriends.length}/5+)
-            </Button>
-          </div>
-        )}
-
-        {/* Quiz Game Screen */}
-        {gameState.gameStarted &&
-          !gameState.gameFinished &&
-          currentQuestion &&
-          !loading && (
+          {/* Friend Selection Screen */}
+          {!gameState.gameStarted && !loading && (
             <div className="space-y-6">
               <div className="text-center">
-                <img
-                  src="/whocastlogo.png"
-                  alt="WhoCast"
-                  className="h-12 mx-auto mb-3"
-                />
-                <div className="text-sm text-muted-foreground mb-2">
-                  Question {gameState.currentQuestionIndex + 1} of{" "}
-                  {gameState.questions.length}
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <h2 className="text-2xl font-bold mb-2">
+                    Select Your Friends
+                  </h2>
                 </div>
-                <div className="text-lg font-semibold">
-                  Score: {gameState.score}
-                </div>
-              </div>
-
-              <div className="bg-card border border-border rounded-lg p-4">
-                <p className="text-lg leading-relaxed">
-                  &ldquo;{currentQuestion.cast.text}&rdquo;
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Choose 5 friends to create your 10-question quiz
                 </p>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-500">
+                  Selected: {gameState.selectedFriends.length}/5
+                </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="text-center font-medium">
-                  Who wrote this cast?
-                </h3>
-                {currentQuestion.options.map((friend) => (
-                  <button
-                    key={friend.user.fid}
-                    onClick={() => selectAnswer(friend)}
-                    className="flex items-center w-full p-3 rounded-lg border border-border hover:bg-accent transition-colors"
-                  >
-                    <img
-                      src={friend.user.pfp_url}
-                      alt={friend.user.display_name}
-                      className="w-12 h-12 rounded-full mr-3"
-                    />
-                    <div className="text-left">
-                      <div className="font-medium">
-                        {friend.user.display_name}
+              <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto p-2">
+                {following.map((friend) => {
+                  const isSelected = gameState.selectedFriends.some(
+                    (f) => f.user.fid === friend.user.fid
+                  );
+
+                  return (
+                    <button
+                      key={friend.user.fid}
+                      onClick={() => toggleFriend(friend)}
+                      disabled={
+                        !isSelected && gameState.selectedFriends.length >= 5
+                      }
+                      className={`flex items-center p-4 rounded-xl border-2 transition-all duration-200 transform hover:scale-105 ${
+                        isSelected
+                          ? "bg-gradient-to-r from-purple-100 to-pink-100 border-purple-400 dark:from-purple-900/30 dark:to-pink-900/30 dark:border-purple-500 shadow-lg"
+                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-md"
+                      } ${
+                        !isSelected && gameState.selectedFriends.length >= 5
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
+                    >
+                      <div className="relative">
+                        <img
+                          src={friend.user.pfp_url}
+                          alt={friend.user.display_name}
+                          className="w-12 h-12 rounded-full mr-4 ring-2 ring-gray-200 dark:ring-gray-700"
+                        />
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">
+                              ✓
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        @{friend.user.username}
+                      <div className="text-left flex-1">
+                        <div className="font-semibold text-gray-900 dark:text-white">
+                          {friend.user.display_name}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          @{friend.user.username}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-8">
+                <Button
+                  onClick={() => generateQuiz(gameState.selectedFriends)}
+                  disabled={gameState.selectedFriends.length < 5}
+                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  🚀 Start Quiz ({gameState.selectedFriends.length}/5)
+                </Button>
               </div>
             </div>
           )}
 
-        {/* Results Screen */}
-        {gameState.gameFinished && !loading && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <img
-                src="/whocastlogo.png"
-                alt="WhoCast"
-                className="h-12 mx-auto mb-3"
-              />
-              <h2 className="text-2xl font-bold mb-2">Quiz Complete!</h2>
-              <div className="text-4xl font-bold text-purple-600 mb-2">
-                {gameState.score}/{gameState.questions.length}
-              </div>
-              <p className="text-muted-foreground">
-                {gameState.score === gameState.questions.length
-                  ? "Perfect score! 🎉"
-                  : gameState.score >= gameState.questions.length * 0.8
-                  ? "Great job! 🎉"
-                  : gameState.score >= gameState.questions.length * 0.6
-                  ? "Not bad! 🎉"
-                  : "Better luck next time! 🎉"}
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-semibold">Your Answers:</h3>
-              {gameState.questions.map((question, index) => {
-                const selectedFid = gameState.answers[question.cast.hash];
-                const isCorrect =
-                  selectedFid === question.correctFriend.user.fid;
-                const selectedFriend = gameState.selectedFriends.find(
-                  (f) => f.user.fid === selectedFid
-                );
-
-                return (
-                  <div
-                    key={question.cast.hash}
-                    className={`p-3 rounded-lg border ${
-                      isCorrect
-                        ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-700"
-                        : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-700"
-                    }`}
-                  >
-                    <div className="text-sm text-muted-foreground mb-1">
-                      Question {index + 1}
-                    </div>
-                    <div className="text-sm mb-2">
-                      &ldquo;{question.cast.text}&rdquo;
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <span
-                        className={
-                          isCorrect ? "text-green-600" : "text-red-600"
-                        }
-                      >
-                        {isCorrect ? "✓" : "✗"}
-                      </span>
-                      <span className="ml-2">
-                        You guessed:{" "}
-                        {selectedFriend?.user.display_name || "Unknown"}
+          {/* Quiz Game Screen */}
+          {gameState.gameStarted &&
+            !gameState.gameFinished &&
+            currentQuestion &&
+            !loading && (
+              <div className="space-y-6">
+                <div className="text-center">
+                  <img
+                    src="/whocastlogo.png"
+                    alt="WhoCast"
+                    className="h-14 mx-auto mb-4 drop-shadow-sm"
+                  />
+                  <div className="flex justify-center items-center space-x-4 mb-4">
+                    <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 px-4 py-2 rounded-full">
+                      <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                        Question {gameState.currentQuestionIndex + 1} of{" "}
+                        {gameState.questions.length}
                       </span>
                     </div>
-                    {!isCorrect && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        Correct: {question.correctFriend.user.display_name}
-                      </div>
-                    )}
+                    <div className="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 px-4 py-2 rounded-full">
+                      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Score: {gameState.score}
+                      </span>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
 
-            <div className="space-y-3">
-              <Button onClick={resetGame} className="w-full">
-                Play Again
-              </Button>
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-2 border-purple-200 dark:border-purple-700 rounded-xl p-6 shadow-lg">
+                  <div className="text-center mb-3">
+                    <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+                      Cast Text
+                    </span>
+                  </div>
+                  <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200 font-medium">
+                    &ldquo;{currentQuestion.cast.text}&rdquo;
+                  </p>
+                </div>
 
-              {context?.user?.fid && (
-                <ShareButton
-                  buttonText="Share My WhoCast Results"
-                  cast={{
-                    text: generateShareText(),
-                    embeds: [
-                      `${process.env.NEXT_PUBLIC_URL}/share/${context.user.fid}`,
-                    ],
-                  }}
-                  className="w-full"
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+                      Who wrote this cast? 🤔
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Click on the friend you think wrote this cast
+                    </p>
+                  </div>
+                  {currentQuestion.options.map((friend) => (
+                    <button
+                      key={friend.user.fid}
+                      onClick={() => selectAnswer(friend)}
+                      className="flex items-center w-full p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-purple-400 dark:hover:border-purple-500 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md"
+                    >
+                      <img
+                        src={friend.user.pfp_url}
+                        alt={friend.user.display_name}
+                        className="w-14 h-14 rounded-full mr-4 ring-2 ring-gray-200 dark:ring-gray-700"
+                      />
+                      <div className="text-left flex-1">
+                        <div className="font-semibold text-gray-900 dark:text-white text-lg">
+                          {friend.user.display_name}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          @{friend.user.username}
+                        </div>
+                      </div>
+                      <div className="text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg
+                          className="w-6 h-6"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {/* Results Screen */}
+          {gameState.gameFinished && !loading && (
+            <div className="space-y-8">
+              <div className="text-center">
+                <img
+                  src="/whocastlogo.png"
+                  alt="WhoCast"
+                  className="h-16 mx-auto mb-4 drop-shadow-sm"
                 />
-              )}
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-2xl p-6 mb-4">
+                  <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+                    Quiz Complete! 🎉
+                  </h2>
+                  <div className="text-6xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                    {gameState.score}/{gameState.questions.length}
+                  </div>
+                  <div className="text-lg text-gray-600 dark:text-gray-400 mb-2">
+                    {Math.round(
+                      (gameState.score / gameState.questions.length) * 100
+                    )}
+                    % Accuracy
+                  </div>
+                  <p className="text-gray-700 dark:text-gray-300 font-medium">
+                    {gameState.score === gameState.questions.length
+                      ? "Perfect score! 🏆 You're a friend expert!"
+                      : gameState.score >= gameState.questions.length * 0.8
+                      ? "Great job! 🎉 You know your friends well!"
+                      : gameState.score >= gameState.questions.length * 0.6
+                      ? "Not bad! 👍 You're getting there!"
+                      : "Better luck next time! 🤔 Keep practicing!"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Friend Performance Breakdown */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 text-center">
+                  Friend Performance Breakdown 👥
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {gameState.selectedFriends.map((friend) => {
+                    // Calculate how many times this friend appeared in questions
+                    const friendQuestions = gameState.questions.filter(
+                      (q) => q.correctFriend.user.fid === friend.user.fid
+                    );
+                    const correctGuesses = friendQuestions.filter((q) => {
+                      const selectedFid = gameState.answers[q.cast.hash];
+                      return selectedFid === friend.user.fid;
+                    }).length;
+                    const totalQuestions = friendQuestions.length;
+                    const accuracy =
+                      totalQuestions > 0
+                        ? Math.round((correctGuesses / totalQuestions) * 100)
+                        : 0;
+
+                    return (
+                      <div
+                        key={friend.user.fid}
+                        className="flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50"
+                      >
+                        <img
+                          src={friend.user.pfp_url}
+                          alt={friend.user.display_name}
+                          className="w-10 h-10 rounded-full mr-3 ring-2 ring-gray-200 dark:ring-gray-700"
+                        />
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {friend.user.display_name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            @{friend.user.username}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {correctGuesses}/{totalQuestions}
+                            </span>
+                            <span
+                              className={`text-lg font-bold ${
+                                accuracy === 100
+                                  ? "text-green-600"
+                                  : accuracy >= 80
+                                  ? "text-blue-600"
+                                  : accuracy >= 60
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              {accuracy}%
+                            </span>
+                          </div>
+                          <div className="flex items-center mt-1">
+                            {correctGuesses > 0 && (
+                              <span className="text-green-600 mr-1">✓</span>
+                            )}
+                            {totalQuestions - correctGuesses > 0 && (
+                              <span className="text-red-600 mr-1">✗</span>
+                            )}
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {correctGuesses > 0 &&
+                                `${correctGuesses} correct`}
+                              {correctGuesses > 0 &&
+                                totalQuestions - correctGuesses > 0 &&
+                                " • "}
+                              {totalQuestions - correctGuesses > 0 &&
+                                `${totalQuestions - correctGuesses} wrong`}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-800 dark:text-white">
+                  Detailed Answers:
+                </h3>
+                {gameState.questions.map((question, index) => {
+                  const selectedFid = gameState.answers[question.cast.hash];
+                  const isCorrect =
+                    selectedFid === question.correctFriend.user.fid;
+                  const selectedFriend = gameState.selectedFriends.find(
+                    (f) => f.user.fid === selectedFid
+                  );
+
+                  return (
+                    <div
+                      key={question.cast.hash}
+                      className={`p-4 rounded-xl border-2 ${
+                        isCorrect
+                          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 dark:from-green-900/20 dark:to-emerald-900/20 dark:border-green-600"
+                          : "bg-gradient-to-r from-red-50 to-pink-50 border-red-300 dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-600"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center">
+                          <span
+                            className={`text-lg font-bold mr-2 ${
+                              isCorrect ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {isCorrect ? "✓" : "✗"}
+                          </span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Question {index + 1}
+                          </span>
+                        </div>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            isCorrect
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
+                          }`}
+                        >
+                          {isCorrect ? "Correct" : "Wrong"}
+                        </div>
+                      </div>
+
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 border border-gray-200 dark:border-gray-700">
+                        <div className="text-sm text-gray-700 dark:text-gray-300 italic">
+                          &ldquo;{question.cast.text}&rdquo;
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <img
+                            src={
+                              selectedFriend?.user.pfp_url ||
+                              question.correctFriend.user.pfp_url
+                            }
+                            alt={
+                              selectedFriend?.user.display_name ||
+                              question.correctFriend.user.display_name
+                            }
+                            className="w-8 h-8 rounded-full mr-2 ring-1 ring-gray-200 dark:ring-gray-700"
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              You guessed:{" "}
+                              {selectedFriend?.user.display_name || "Unknown"}
+                            </div>
+                            {!isCorrect && (
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                Correct:{" "}
+                                {question.correctFriend.user.display_name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {!isCorrect && (
+                          <div className="flex items-center">
+                            <img
+                              src={question.correctFriend.user.pfp_url}
+                              alt={question.correctFriend.user.display_name}
+                              className="w-8 h-8 rounded-full mr-2 ring-1 ring-gray-200 dark:ring-gray-700"
+                            />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {question.correctFriend.user.display_name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-4">
+                <Button
+                  onClick={resetGame}
+                  className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  🎮 Play Again
+                </Button>
+
+                {context?.user?.fid && (
+                  <ShareButton
+                    buttonText="📤 Share My Results"
+                    cast={{
+                      text: generateShareText(),
+                      embeds: [
+                        `${process.env.NEXT_PUBLIC_URL}/share/${context.user.fid}`,
+                      ],
+                    }}
+                    className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

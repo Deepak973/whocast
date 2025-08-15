@@ -1,0 +1,18 @@
+{
+  "frame": {
+    "name": "whocast",
+    "version": "1",
+    "iconUrl": "https://whocast.vercel.app/whocastlogo.png",
+    "homeUrl": "https://whocast.vercel.app",
+    "splashImageUrl": "https://whocast.vercel.app/splash.png",
+    "splashBackgroundColor": "#6200EA",
+    "subtitle": "Guess who",
+    "description": "Guess which friend dropped the cast!",
+    "primaryCategory": "social"
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjY3MzEyNiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRmMjBEMDk0NWEwQWFlMjVkNDA2Q2QxYTIyN2JBOGE5OUNCODYzOEYifQ",
+    "payload": "eyJkb21haW4iOiJ3aG9jYXN0LnZlcmNlbC5hcHAifQ",
+    "signature": "MHg0MWU1ZWZlZjUwNmEyYWI3YjU2N2ZhODA0NjJhOWY5ZGU4OTcyNTc3ZDNmMjg1ZGJlZjBjNzgwZTE1ZjA2MGJkNjc2ZmNhODhlOThkMjZiMTgzMmJlMTA1YmZhZTIxZGI4MTZhODk1YTg1ZDRkZDcxZWMwYThlZGYzY2U4OGIyMDFi"
+  }
+}

@@ -274,8 +274,8 @@ export default function WhoCast() {
 
     // Include usernames with @ for proper tagging
     const friendNames = gameState.selectedFriends
-      .map((friend) => `${friend.user.display_name} (@${friend.user.username})`)
-      .join(", ");
+      .map((friend) => `@${friend.user.username}`)
+      .join(" ");
 
     const percentage = Math.round(
       (gameState.score / gameState.questions.length) * 100
@@ -287,58 +287,14 @@ export default function WhoCast() {
     else if (percentage >= 60) performanceEmoji = "👍";
     else performanceEmoji = "🤔";
 
-    // Create detailed breakdown of each question
-    const questionBreakdown = gameState.questions
-      .map((question, index) => {
-        const selectedFid = gameState.answers[question.cast.hash];
-        const isCorrect = selectedFid === question.correctFriend.user.fid;
-        const selectedFriend = gameState.selectedFriends.find(
-          (f) => f.user.fid === selectedFid
-        );
+    // Create a concise version that fits within 320 characters
+    const conciseVersion = `🎭 WhoCast: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
 
-        return `${index + 1}. ${isCorrect ? "✅" : "❌"} ${
-          question.correctFriend.user.display_name
-        } (@${question.correctFriend.user.username}) (You guessed: ${
-          selectedFriend?.user.display_name || "Unknown"
-        })`;
-      })
-      .join("\n");
+👥 Tested with: ${friendNames}
 
-    // Create friend performance summary with usernames
-    const friendPerformance = gameState.selectedFriends
-      .map((friend) => {
-        const friendQuestions = gameState.questions.filter(
-          (q) => q.correctFriend.user.fid === friend.user.fid
-        );
-        const correctGuesses = friendQuestions.filter((q) => {
-          const selectedFid = gameState.answers[q.cast.hash];
-          return selectedFid === friend.user.fid;
-        }).length;
-        const totalQuestions = friendQuestions.length;
-        const accuracy =
-          totalQuestions > 0
-            ? Math.round((correctGuesses / totalQuestions) * 100)
-            : 0;
+🎮 Play WhoCast and see how well you know your friends!`;
 
-        return `${friend.user.display_name} (@${friend.user.username}): ${correctGuesses}/${totalQuestions} (${accuracy}%)`;
-      })
-      .join("\n");
-
-    // Create a longer detailed version
-    const detailedVersion = `🎭 WhoCast Results: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
-
-👥 Friends tested: ${friendNames}
-
-📊 Friend Performance:
-${friendPerformance}
-
-📝 Question Breakdown:
-${questionBreakdown}
-
-🎮 Play WhoCast and see how well you know your friends! Can you beat my score?`;
-
-    // Return the detailed version for comprehensive sharing
-    return detailedVersion;
+    return conciseVersion;
   }, [gameState]);
 
   // Reset game

@@ -805,12 +805,7 @@ export default function WhoCast() {
                     buttonText="📤 Share My Results"
                     cast={{
                       text: generateShareText(),
-                      embeds: [
-                        {
-                          path: "/",
-                          url: APP_URL,
-                        },
-                      ],
+                      embeds: [`${APP_URL}/share/${context?.user?.fid || ""}`],
                     }}
                     className="w-full py-4 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
                   />

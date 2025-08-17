@@ -1,42 +1,26 @@
 import { ImageResponse } from "next/og";
+import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   return new ImageResponse(
     (
-      <div tw="flex h-full w-full flex-col justify-center items-center relative bg-purple-600">
-        <img
-          src="https://whocast.vercel.app/whocastlogo.png"
-          alt="WhoCast Logo"
-          tw="w-20 h-20 mb-8 drop-shadow-lg"
-        />
-
-        {/* Main Text */}
-        <div tw="text-center">
-          <h1 tw="text-6xl font-bold text-white mb-4 drop-shadow-lg">
-            WhoCast
-          </h1>
-          <p tw="text-2xl text-purple-200 opacity-90 max-w-2xl leading-relaxed">
-            Guess who dropped the cast! 🪐
-          </p>
-          <p tw="text-lg text-purple-300 opacity-80 mt-4">
-            Test your knowledge of your Farcaster friends
-          </p>
+      <div tw="flex h-full w-full flex-col justify-center items-center relative bg-primary">
+        <div tw="flex w-96 h-96 rounded-full overflow-hidden mb-8 border-8 border-white">
+          <img
+            src={"https://farcastersnake.vercel.app/logo.jpg"}
+            alt="Farcaster Snake"
+            tw="w-full h-full object-cover"
+          />
         </div>
 
-        {/* Decorative Elements */}
-        <div tw="absolute bottom-8 left-8 text-purple-300 text-lg opacity-60">
-          🎮 Quiz Game
-        </div>
-        <div tw="absolute bottom-8 right-8 text-purple-300 text-lg opacity-60">
-          🏆 Score Points
-        </div>
+        <h1 tw="text-8xl text-purple-500">Eat, Drink, Poop Repeat</h1>
       </div>
     ),
     {
       width: 1200,
-      height: 630,
+      height: 800,
     }
   );
 }

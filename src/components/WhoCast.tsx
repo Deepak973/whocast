@@ -555,8 +555,8 @@ export default function WhoCast() {
             )}
 
             {/* Users List */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 overflow-hidden">
-              <div className="h-64 overflow-y-auto p-3">
+            <div className="flex flex-col h-screen bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-3">
                 {searching ? (
                   <div className="text-center py-8">
                     <div className="animate-spin h-6 w-6 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
@@ -622,22 +622,22 @@ export default function WhoCast() {
                   </div>
                 )}
               </div>
+              {!gameState.gameStarted && !loading && (
+                <div className="p-3 border-t border-purple-400/20">
+                  <Button
+                    onClick={() => generateQuiz(gameState.selectedFriends)}
+                    disabled={gameState.selectedFriends.length < 5}
+                    className="w-full py-3 text-lg font-bold bg-purple-600 hover:bg-purple-700 transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  >
+                    Start Quiz ({gameState.selectedFriends.length}/5)
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Start Quiz Button - Fixed at Bottom */}
-        {!gameState.gameStarted && !loading && (
-          <div className="fixed bottom-4 left-4 right-4 z-20">
-            <Button
-              onClick={() => generateQuiz(gameState.selectedFriends)}
-              disabled={gameState.selectedFriends.length < 5}
-              className="w-full py-3 text-lg font-bold bg-purple-600 hover:bg-purple-700 transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-            >
-              🚀 Start Quiz ({gameState.selectedFriends.length}/5)
-            </Button>
-          </div>
-        )}
 
         {/* Quiz Game Screen */}
         {gameState.gameStarted &&

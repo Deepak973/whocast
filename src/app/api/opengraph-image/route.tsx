@@ -11,9 +11,9 @@ export async function GET() {
           alt="WhoCast"
           tw="w-full h-full object-cover"
         />
-        <div tw="absolute bottom-0 left-0 right-0 p-4 bg-black/50">
-          <p tw="text-white text-2xl font-bold">WhoCast</p>
-        </div>
+        <h1 tw="text-8xl text-purple-500 font-bold edu-nsw-act-cursive">
+          Who Cast
+        </h1>
       </div>
     ),
     {

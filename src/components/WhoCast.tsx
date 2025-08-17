@@ -199,15 +199,15 @@ export default function WhoCast() {
         (cast) => cast.text.length > 20 && cast.text.length < 200
       );
 
-      if (validCasts.length < 10) {
+      if (validCasts.length < 5) {
         setError("Not enough casts found. Please try again.");
         return;
       }
 
-      // Shuffle and take 10 random casts
+      // Shuffle and take 5 random casts
       const shuffledCasts = validCasts
         .sort(() => Math.random() - 0.5)
-        .slice(0, 10);
+        .slice(0, 5);
 
       // Generate questions
       const questions: QuizQuestion[] = shuffledCasts.map((cast) => {

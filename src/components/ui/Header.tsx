@@ -4,14 +4,7 @@ import { useState } from "react";
 import sdk from "@farcaster/frame-sdk";
 import { useMiniApp } from "@neynar/react";
 
-type HeaderProps = {
-  neynarUser?: {
-    fid: number;
-    score: number;
-  } | null;
-};
-
-export function Header({ neynarUser }: HeaderProps) {
+export function Header() {
   const { context } = useMiniApp();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 

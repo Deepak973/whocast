@@ -5,7 +5,7 @@
     "iconUrl": "https://whocast.vercel.app/whocastlogo.png",
     "homeUrl": "https://whocast.vercel.app",
     "splashImageUrl": "https://whocast.vercel.app/splash.png",
-    "splashBackgroundColor": "#6200EA",
+    "splashBackgroundColor": "#ffcda2",
     "subtitle": "Guess who",
     "description": "Guess which friend dropped the cast!",
     "primaryCategory": "social"

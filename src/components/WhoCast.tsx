@@ -62,6 +62,10 @@ export default function WhoCast() {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDetailedAnswers, setShowDetailedAnswers] = useState(false);
+  const [
+    selectedAnswerForCurrentQuestion,
+    setSelectedAnswerForCurrentQuestion,
+  ] = useState<number | null>(null);
 
   // Fetch all friends (500 users) on component mount with cursor pagination
   useEffect(() => {
@@ -243,6 +247,9 @@ export default function WhoCast() {
         score: 0,
         answers: {},
       }));
+
+      // Reset the selected answer state for the new quiz
+      setSelectedAnswerForCurrentQuestion(null);
     } catch (err) {
       setError("Failed to generate quiz");
       console.error(err);
@@ -283,27 +290,36 @@ export default function WhoCast() {
         gameState.questions[gameState.currentQuestionIndex];
       if (!currentQuestion) return;
 
+      // Set the selected answer for visual feedback
+      setSelectedAnswerForCurrentQuestion(selectedFriend.user.fid);
+
       const isCorrect =
         selectedFriend.user.fid === currentQuestion.correctFriend.user.fid;
 
-      setGameState((prev) => {
-        const newAnswers = {
-          ...prev.answers,
-          [currentQuestion.cast.hash]: selectedFriend.user.fid,
-        };
+      // Move to next question after a brief delay to show the selection
+      setTimeout(() => {
+        setGameState((prev) => {
+          const newAnswers = {
+            ...prev.answers,
+            [currentQuestion.cast.hash]: selectedFriend.user.fid,
+          };
 
-        const newScore = isCorrect ? prev.score + 1 : prev.score;
-        const nextQuestionIndex = prev.currentQuestionIndex + 1;
-        const gameFinished = nextQuestionIndex >= prev.questions.length;
+          const newScore = isCorrect ? prev.score + 1 : prev.score;
+          const nextQuestionIndex = prev.currentQuestionIndex + 1;
+          const gameFinished = nextQuestionIndex >= prev.questions.length;
 
-        return {
-          ...prev,
-          score: newScore,
-          currentQuestionIndex: nextQuestionIndex,
-          gameFinished,
-          answers: newAnswers,
-        };
-      });
+          return {
+            ...prev,
+            score: newScore,
+            currentQuestionIndex: nextQuestionIndex,
+            gameFinished,
+            answers: newAnswers,
+          };
+        });
+
+        // Reset the selected answer for the next question
+        setSelectedAnswerForCurrentQuestion(null);
+      }, 1000); // 1 second delay to show the selection
     },
     [gameState.currentQuestionIndex, gameState.questions]
   );
@@ -350,6 +366,9 @@ Tested with: ${friendNames}
       gameFinished: false,
       answers: {},
     });
+
+    // Reset the selected answer state
+    setSelectedAnswerForCurrentQuestion(null);
   }, []);
 
   if (!isSDKLoaded) {
@@ -715,45 +734,104 @@ Tested with: ${friendNames}
 
               {/* Answer Options */}
               <div className="space-y-4">
-                {currentQuestion.options.map((friend) => (
-                  <button
-                    key={friend.user.fid}
-                    onClick={() => selectAnswer(friend)}
-                    className="group flex items-center w-full p-4 rounded-lg border border-[#ffcda2]/30 hover:border-[#ffcda2] hover:bg-black/30 transition-all duration-300 transform hover:scale-102 shadow-md hover:shadow-lg"
-                  >
-                    <div className="relative">
-                      <img
-                        src={friend.user.pfp_url}
-                        alt={friend.user.display_name}
-                        className="w-12 h-12 rounded-full mr-4 ring-1 ring-[#ffcda2]/50 transition-all duration-300 group-hover:ring-[#ffcda2]"
-                      />
-                      <div className="absolute -inset-1 bg-[#ffcda2] rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
-                    </div>
-                    <div className="text-left flex-1 min-w-0">
-                      <div className="font-bold text-white text-lg truncate edu-nsw-act-cursive">
-                        {friend.user.display_name}
-                      </div>
-                      <div className="text-[#ffcda2] font-medium truncate text-sm">
-                        @{friend.user.username}
-                      </div>
-                    </div>
-                    <div className="text-[#ffcda2] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <svg
-                        className="w-8 h-8"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
+                {currentQuestion.options.map((friend) => {
+                  const isSelected =
+                    selectedAnswerForCurrentQuestion === friend.user.fid;
+                  const isCorrect =
+                    friend.user.fid === currentQuestion.correctFriend.user.fid;
+                  const showResult = selectedAnswerForCurrentQuestion !== null;
+
+                  return (
+                    <button
+                      key={friend.user.fid}
+                      onClick={() => selectAnswer(friend)}
+                      disabled={selectedAnswerForCurrentQuestion !== null}
+                      className={`group flex items-center w-full p-4 rounded-lg border transition-all duration-300 transform shadow-md ${
+                        isSelected
+                          ? isCorrect
+                            ? "border-green-400 bg-green-500/20 scale-105"
+                            : "border-red-400 bg-red-500/20 scale-105"
+                          : showResult && isCorrect
+                          ? "border-green-400 bg-green-500/10"
+                          : "border-[#ffcda2]/30 hover:border-[#ffcda2] hover:bg-black/30 hover:scale-102"
+                      } ${
+                        selectedAnswerForCurrentQuestion !== null
+                          ? "cursor-not-allowed"
+                          : "hover:shadow-lg"
+                      }`}
+                    >
+                      <div className="relative">
+                        <img
+                          src={friend.user.pfp_url}
+                          alt={friend.user.display_name}
+                          className={`w-12 h-12 rounded-full mr-4 ring-1 transition-all duration-300 ${
+                            isSelected
+                              ? isCorrect
+                                ? "ring-green-400"
+                                : "ring-red-400"
+                              : showResult && isCorrect
+                              ? "ring-green-400"
+                              : "ring-[#ffcda2]/50 group-hover:ring-[#ffcda2]"
+                          }`}
                         />
-                      </svg>
-                    </div>
-                  </button>
-                ))}
+                        <div
+                          className={`absolute -inset-1 rounded-full transition-opacity duration-300 blur-sm ${
+                            isSelected
+                              ? isCorrect
+                                ? "bg-green-400 opacity-20"
+                                : "bg-red-400 opacity-20"
+                              : "bg-[#ffcda2] opacity-0 group-hover:opacity-20"
+                          }`}
+                        ></div>
+                      </div>
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-bold text-white text-lg truncate edu-nsw-act-cursive">
+                          {friend.user.display_name}
+                        </div>
+                        <div className="text-[#ffcda2] font-medium truncate text-sm">
+                          @{friend.user.username}
+                        </div>
+                      </div>
+                      <div
+                        className={`transition-opacity duration-300 ${
+                          isSelected
+                            ? "opacity-100"
+                            : showResult && isCorrect
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100"
+                        }`}
+                      >
+                        {isSelected ? (
+                          <div
+                            className={`text-2xl font-bold ${
+                              isCorrect ? "text-green-400" : "text-red-400"
+                            }`}
+                          >
+                            {isCorrect ? "✓" : "✗"}
+                          </div>
+                        ) : showResult && isCorrect ? (
+                          <div className="text-2xl font-bold text-green-400">
+                            ✓
+                          </div>
+                        ) : (
+                          <svg
+                            className="w-8 h-8 text-[#ffcda2]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

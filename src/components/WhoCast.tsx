@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMiniApp } from "@neynar/react";
 import { Button } from "~/components/ui/Button";
 import { ShareButton } from "~/components/ui/Share";
+import { Header } from "~/components/ui/Header";
 import { APP_URL } from "~/lib/constants";
 
 interface Friend {
@@ -54,68 +55,63 @@ export default function WhoCast() {
     gameFinished: false,
     answers: {},
   });
-  const [following, setFollowing] = useState<Friend[]>([]);
-  const [filteredFollowing, setFilteredFollowing] = useState<Friend[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<Friend[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch user's following list
+  // Search users based on query
   useEffect(() => {
-    const fetchFollowing = async () => {
-      if (!context?.user?.fid) {
-        console.log("No context or FID available, skipping fetch");
+    const searchUsers = async () => {
+      if (!searchQuery.trim()) {
+        setFilteredUsers([]);
+        setSearching(false);
         return;
       }
 
-      setLoading(true);
+      setSearching(true);
       setError(null);
 
       try {
         const response = await fetch(
-          `/api/following?limit=100&fid=${context.user.fid}`
+          `/api/following?q=${encodeURIComponent(searchQuery)}&limit=50&fid=${
+            context?.user?.fid
+          }`
         );
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error(`Following API error:`, errorData);
+          console.error(`User search API error:`, errorData);
           throw new Error(
-            `Failed to fetch following: ${
-              errorData.error || response.statusText
-            }`
+            `Failed to search users: ${errorData.error || response.statusText}`
           );
         }
 
         const data = await response.json();
-        setFollowing(data.following || []);
+        const userList = data.users || [];
+        console.log("Search results:", userList);
+        setFilteredUsers(userList);
       } catch (err) {
-        console.error("Error fetching following:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load your friends"
-        );
+        console.error("Error searching users:", err);
+        setError(err instanceof Error ? err.message : "Failed to search users");
+        setFilteredUsers([]);
       } finally {
-        setLoading(false);
+        setSearching(false);
       }
     };
 
-    fetchFollowing();
-  }, [context?.user?.fid]);
+    // Debounce the search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        searchUsers();
+      } else {
+        setSearching(false);
+      }
+    }, 300);
 
-  // Filter friends based on search query
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredFollowing(following);
-    } else {
-      const filtered = following.filter(
-        (friend) =>
-          friend.user.display_name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          friend.user.username.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredFollowing(filtered);
-    }
-  }, [following, searchQuery]);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, context?.user?.fid]);
 
   // Generate quiz questions
   const generateQuiz = useCallback(async (selectedFriends: Friend[]) => {
@@ -379,39 +375,19 @@ export default function WhoCast() {
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Subtle background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
       </div>
 
-      <div className="relative z-10 mx-auto py-6 px-4 pb-20 max-w-md">
-        {/* Header with modern design */}
-        <div className="text-center mb-8">
-          <div className="relative inline-block mb-6">
-            <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75 animate-pulse"></div>
-            <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-2xl">
-              <img
-                src="/whocastlogo.png"
-                alt="WhoCast"
-                className="h-16 mx-auto drop-shadow-lg"
-              />
-            </div>
-          </div>
-
-          <h1 className="text-4xl font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-3 tracking-tight">
-            WhoCast
-          </h1>
-
-          <p className="text-lg text-purple-200 font-medium mb-2">
-            Test Your Friend Knowledge! 🧠
-          </p>
-          <p className="text-sm text-purple-300/80 leading-relaxed">
-            Guess which friend wrote each cast and see how well you know them
-          </p>
-        </div>
+      <div className="relative z-10 mx-auto py-4 px-4 pb-24 max-w-sm">
+        {/* Header */}
+        <Header />
 
         {error && (
           <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 backdrop-blur-sm border border-red-400/50 rounded-2xl p-6 mb-6 text-center shadow-xl">
@@ -458,19 +434,10 @@ export default function WhoCast() {
 
         {/* Friend Selection Screen */}
         {!gameState.gameStarted && !loading && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="text-center">
-              <div className="bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                <h2 className="text-3xl font-black mb-3 tracking-tight">
-                  Select Your Friends
-                </h2>
-              </div>
-              <p className="text-purple-200 font-medium mb-4">
-                Choose 5 friends to create your 10-question quiz
-              </p>
-
               {/* Progress indicator */}
-              <div className="relative bg-gray-800/50 rounded-full h-3 mb-4 overflow-hidden">
+              <div className="relative bg-gray-800/30 rounded-full h-2 mb-3 overflow-hidden">
                 <div
                   className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all duration-500 ease-out"
                   style={{
@@ -479,16 +446,16 @@ export default function WhoCast() {
                 ></div>
               </div>
 
-              <div className="text-sm text-purple-300 font-semibold">
+              <div className="text-xs text-purple-300">
                 {gameState.selectedFriends.length}/5 Selected
               </div>
             </div>
 
             {/* Search Bar */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
-                  className="h-5 w-5 text-purple-300"
+                  className="h-4 w-4 text-purple-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -503,27 +470,64 @@ export default function WhoCast() {
               </div>
               <input
                 type="text"
-                placeholder="Search friends by name or username..."
+                placeholder="Search users by username..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-purple-400/30 rounded-2xl text-white placeholder-purple-300/70 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+                className="block w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm border border-purple-400/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
               />
             </div>
 
-            {/* Friends List */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-purple-400/30 overflow-hidden shadow-2xl">
-              <div className="max-h-80 overflow-y-auto p-4">
-                {filteredFollowing.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-purple-300/70 text-lg font-medium">
+            {/* Selected Users */}
+            {gameState.selectedFriends.length > 0 && (
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 p-3">
+                <h3 className="text-sm font-medium text-white mb-2">
+                  Selected Users:
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {gameState.selectedFriends.map((friend) => (
+                    <div
+                      key={friend.user.fid}
+                      className="flex items-center bg-purple-500/20 rounded-lg px-2 py-1"
+                    >
+                      <img
+                        src={friend.user.pfp_url}
+                        alt={friend.user.display_name}
+                        className="w-5 h-5 rounded-full mr-2"
+                      />
+                      <span className="text-xs text-white">
+                        {friend.user.username}
+                      </span>
+                      <button
+                        onClick={() => toggleFriend(friend)}
+                        className="ml-1 text-purple-300 hover:text-white text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Users List */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 overflow-hidden">
+              <div className="h-64 overflow-y-auto p-3">
+                {searching ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin h-6 w-6 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
+                    <div className="text-purple-300 text-sm">Searching...</div>
+                  </div>
+                ) : filteredUsers.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-purple-300 text-sm">
                       {searchQuery.trim()
-                        ? "No friends found matching your search"
-                        : "Loading friends..."}
+                        ? "No users found"
+                        : "Search for users by username..."}
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {filteredFollowing.map((friend) => {
+                  <div className="grid grid-cols-1 gap-2">
+                    {filteredUsers.map((friend) => {
                       const isSelected = gameState.selectedFriends.some(
                         (f) => f.user.fid === friend.user.fid
                       );
@@ -535,10 +539,10 @@ export default function WhoCast() {
                           disabled={
                             !isSelected && gameState.selectedFriends.length >= 5
                           }
-                          className={`group relative flex items-center p-4 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                          className={`group relative flex items-center p-3 rounded-lg border transition-all duration-200 ${
                             isSelected
-                              ? "bg-gradient-to-r from-purple-500/30 to-pink-500/30 border-purple-400 shadow-lg"
-                              : "bg-white/5 border-purple-400/20 hover:border-purple-400/50 hover:bg-white/10"
+                              ? "bg-purple-500/20 border-purple-400"
+                              : "bg-white/5 border-purple-400/20 hover:border-purple-400/40 hover:bg-white/10"
                           } ${
                             !isSelected && gameState.selectedFriends.length >= 5
                               ? "opacity-50 cursor-not-allowed"
@@ -549,21 +553,21 @@ export default function WhoCast() {
                             <img
                               src={friend.user.pfp_url}
                               alt={friend.user.display_name}
-                              className="w-14 h-14 rounded-full mr-4 ring-2 ring-purple-400/50 transition-all duration-300 group-hover:ring-purple-400"
+                              className="w-10 h-10 rounded-full mr-3 ring-1 ring-purple-400/30"
                             />
                             {isSelected && (
-                              <div className="absolute -top-2 -right-2 w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                                <span className="text-white text-sm font-bold">
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">
                                   ✓
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="text-left flex-1">
-                            <div className="font-bold text-white text-lg">
+                            <div className="font-medium text-white text-sm">
                               {friend.user.display_name}
                             </div>
-                            <div className="text-purple-200 font-medium">
+                            <div className="text-purple-200 text-xs">
                               @{friend.user.username}
                             </div>
                           </div>
@@ -574,17 +578,19 @@ export default function WhoCast() {
                 )}
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Start Quiz Button */}
-            <div className="mt-8">
-              <Button
-                onClick={() => generateQuiz(gameState.selectedFriends)}
-                disabled={gameState.selectedFriends.length < 5}
-                className="w-full py-5 text-xl font-black bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-300 shadow-2xl rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                🚀 Start Quiz ({gameState.selectedFriends.length}/5)
-              </Button>
-            </div>
+        {/* Start Quiz Button - Fixed at Bottom */}
+        {!gameState.gameStarted && !loading && (
+          <div className="fixed bottom-4 left-4 right-4 z-20">
+            <Button
+              onClick={() => generateQuiz(gameState.selectedFriends)}
+              disabled={gameState.selectedFriends.length < 5}
+              className="w-full py-3 text-lg font-bold bg-purple-600 hover:bg-purple-700 transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            >
+              🚀 Start Quiz ({gameState.selectedFriends.length}/5)
+            </Button>
           </div>
         )}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { APP_NAME } from "~/lib/constants";
 import sdk from "@farcaster/frame-sdk";
 import { useMiniApp } from "@neynar/react";
 
@@ -15,69 +14,66 @@ type HeaderProps = {
 export function Header({ neynarUser }: HeaderProps) {
   const { context } = useMiniApp();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const [hasClickedPfp, setHasClickedPfp] = useState(false);
 
   return (
-    <div className="relative">
-      <div className="mb-1 py-2 px-3 bg-card text-card-foreground rounded-lg flex items-center justify-between border-[3px] border-double border-primary">
-        <div className="text-lg font-light">Welcome to {APP_NAME}!</div>
+    <div className="relative -mx-4 mb-6">
+      <div className="py-3 px-4 bg-white/5 backdrop-blur-sm text-white flex items-center justify-between border-b border-purple-400/30">
+        {/* Logo Section */}
+        <div className="flex items-center space-x-2">
+          <img
+            src="/whocastlogo.png"
+            alt="WhoCast"
+            className="w-6 h-6 drop-shadow-sm"
+          />
+          <div className="text-lg font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            WhoCast
+          </div>
+        </div>
+
+        {/* User Profile Section */}
         {context?.user && (
           <div
-            className="cursor-pointer"
+            className="cursor-pointer relative"
             onClick={() => {
               setIsUserDropdownOpen(!isUserDropdownOpen);
-              setHasClickedPfp(true);
             }}
           >
             {context.user.pfpUrl && (
               <img
                 src={context.user.pfpUrl}
                 alt="Profile"
-                className="w-10 h-10 rounded-full border-2 border-primary"
+                className="w-8 h-8 rounded-full border border-purple-400/30 hover:border-purple-400 transition-all duration-200"
               />
             )}
           </div>
         )}
       </div>
-      {context?.user && (
-        <>
-          {!hasClickedPfp && (
-            <div className="absolute right-0 -bottom-6 text-xs text-primary flex items-center justify-end gap-1 pr-2">
-              <span className="text-[10px]">↑</span> Click PFP!{" "}
-              <span className="text-[10px]">↑</span>
-            </div>
-          )}
 
-          {isUserDropdownOpen && (
-            <div className="absolute top-full right-0 z-50 w-fit mt-1 bg-card text-card-foreground rounded-lg shadow-lg border border-border">
-              <div className="p-3 space-y-2">
-                <div className="text-right">
-                  <h3
-                    className="font-bold text-sm hover:underline cursor-pointer inline-block text-foreground"
-                    onClick={() =>
-                      sdk.actions.viewProfile({ fid: context.user.fid })
-                    }
-                  >
-                    {context.user.displayName || context.user.username}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    @{context.user.username}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    FID: {context.user.fid}
-                  </p>
-                  {neynarUser && (
-                    <>
-                      <p className="text-xs text-muted-foreground">
-                        Neynar Score: {neynarUser.score}
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
+      {/* User Dropdown */}
+      {context?.user && isUserDropdownOpen && (
+        <div className="absolute top-full right-0 z-50 w-fit mt-1 bg-white/10 backdrop-blur-sm text-white rounded-xl shadow-xl border border-purple-400/30">
+          <div className="p-3 space-y-2">
+            <div className="text-right">
+              <h3
+                className="font-bold text-sm hover:underline cursor-pointer inline-block text-white"
+                onClick={() =>
+                  sdk.actions.viewProfile({ fid: context.user.fid })
+                }
+              >
+                {context.user.displayName || context.user.username}
+              </h3>
+              <p className="text-xs text-purple-200">
+                @{context.user.username}
+              </p>
+              <p className="text-xs text-purple-200">FID: {context.user.fid}</p>
+              {neynarUser && (
+                <p className="text-xs text-purple-200">
+                  Neynar Score: {neynarUser.score}
+                </p>
+              )}
             </div>
-          )}
-        </>
+          </div>
+        </div>
       )}
     </div>
   );

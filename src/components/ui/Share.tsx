@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect } from "react";
 import { Button } from "./Button";
 import { useMiniApp } from "@neynar/react";
 import { type ComposeCast } from "@farcaster/frame-sdk";
-import { fetchWithAuth } from "~/lib/auth";
 
 interface EmbedConfig {
   path?: string;
@@ -45,7 +44,7 @@ export function ShareButton({
 
       const fetchBestFriends = async () => {
         try {
-          const response = await fetchWithAuth(`/api/best-friends`);
+          const response = await fetch(`/api/best-friends`);
           const data = await response.json();
           setBestFriends(data.bestFriends);
         } catch (err) {
@@ -111,16 +110,13 @@ export function ShareButton({
       );
 
       // Open cast composer with all supported intents
-      await actions.composeCast(
-        {
-          text: finalText,
-          embeds: processedEmbeds as [string] | [string, string] | undefined,
-          parent: cast.parent,
-          channelKey: cast.channelKey,
-          close: cast.close,
-        },
-        "share-button"
-      );
+      await actions.composeCast({
+        text: finalText,
+        embeds: processedEmbeds as [string] | [string, string] | undefined,
+        parent: cast.parent,
+        channelKey: cast.channelKey,
+        close: cast.close,
+      });
     } catch (error) {
       console.error("Failed to share:", error);
     } finally {

@@ -3,25 +3,40 @@ import { ImageResponse } from "next/og";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  // const { searchParams } = new URL(request.url);
-  // const fid = searchParams.get("fid");
-
   return new ImageResponse(
     (
       <div tw="flex h-full w-full flex-col justify-center items-center relative bg-purple-600">
         <img
           src="https://whocast.vercel.app/whocastlogo.png"
-          alt="Logo"
-          tw="w-16 h-16 absolute top-4 left-4"
+          alt="WhoCast Logo"
+          tw="w-20 h-20 mb-8 drop-shadow-lg"
         />
-        <p tw="text-5xl mt-4 text-white opacity-80">
-          Guess who dropped the cast! 🪐
-        </p>
+
+        {/* Main Text */}
+        <div tw="text-center">
+          <h1 tw="text-6xl font-bold text-white mb-4 drop-shadow-lg">
+            WhoCast
+          </h1>
+          <p tw="text-2xl text-purple-200 opacity-90 max-w-2xl leading-relaxed">
+            Guess who dropped the cast! 🪐
+          </p>
+          <p tw="text-lg text-purple-300 opacity-80 mt-4">
+            Test your knowledge of your Farcaster friends
+          </p>
+        </div>
+
+        {/* Decorative Elements */}
+        <div tw="absolute bottom-8 left-8 text-purple-300 text-lg opacity-60">
+          🎮 Quiz Game
+        </div>
+        <div tw="absolute bottom-8 right-8 text-purple-300 text-lg opacity-60">
+          🏆 Score Points
+        </div>
       </div>
     ),
     {
       width: 1200,
-      height: 800,
+      height: 630,
     }
   );
 }

@@ -61,6 +61,7 @@ export default function WhoCast() {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDetailedAnswers, setShowDetailedAnswers] = useState(false);
 
   // Fetch all friends (500 users) on component mount with cursor pagination
   useEffect(() => {
@@ -329,11 +330,11 @@ export default function WhoCast() {
     else performanceEmoji = "🤔";
 
     // Create a concise version that fits within 320 characters
-    const conciseVersion = `🎭 WhoCast: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
+    const conciseVersion = `WhoCast: ${gameState.score}/${gameState.questions.length} (${percentage}%) ${performanceEmoji}
 
-👥 Tested with: ${friendNames}
+Tested with: ${friendNames}
 
-🎮 Play WhoCast and see how well you know your friends!`;
+ Play WhoCast and see how well you know your friends!`;
 
     return conciseVersion;
   }, [gameState]);
@@ -420,12 +421,12 @@ export default function WhoCast() {
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-black relative overflow-hidden">
       {/* Subtle background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ffcda2] rounded-full mix-blend-multiply filter blur-xl opacity-5 animate-pulse"></div>
         <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#ffcda2] rounded-full mix-blend-multiply filter blur-xl opacity-5 animate-pulse"
           style={{ animationDelay: "2s" }}
         ></div>
       </div>
@@ -440,7 +441,7 @@ export default function WhoCast() {
               <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-3">
                 <span className="text-2xl">⚠️</span>
               </div>
-              <span className="font-bold text-white text-lg">
+              <span className="font-bold text-white text-lg edu-nsw-act-cursive">
                 Oops! Something went wrong
               </span>
             </div>
@@ -451,26 +452,26 @@ export default function WhoCast() {
         {loading && (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-purple-400 border-t-white rounded-full animate-spin"></div>
+              <div className="w-20 h-20 border-4 border-cyan-400 border-t-white rounded-full animate-spin"></div>
               <div
-                className="absolute inset-0 w-20 h-20 border-4 border-pink-400 border-t-transparent rounded-full animate-spin"
+                className="absolute inset-0 w-20 h-20 border-4 border-[#ffcda2] border-t-transparent rounded-full animate-spin"
                 style={{
                   animationDirection: "reverse",
                   animationDuration: "1.5s",
                 }}
               ></div>
             </div>
-            <p className="mt-6 text-purple-200 font-semibold text-lg">
+            <p className="mt-6 text-[#ffcda2] font-semibold text-lg edu-nsw-act-cursive">
               Loading your Quiz...
             </p>
             <div className="mt-4 flex space-x-2">
-              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-[#ffcda2] rounded-full animate-bounce"></div>
               <div
-                className="w-2 h-2 bg-pink-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-[#ffcda2]/80 rounded-full animate-bounce"
                 style={{ animationDelay: "0.1s" }}
               ></div>
               <div
-                className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
+                className="w-2 h-2 bg-[#ffcda2]/60 rounded-full animate-bounce"
                 style={{ animationDelay: "0.2s" }}
               ></div>
             </div>
@@ -480,18 +481,25 @@ export default function WhoCast() {
         {/* Friend Selection Screen */}
         {!gameState.gameStarted && !loading && (
           <div className="space-y-4">
-            <div className="text-center">
+            <div className="text-center mb-6">
+              <h1 className="edu-nsw-act-cursive text-4xl font-bold text-white mb-2">
+                WhoCast
+              </h1>
+              <p className="text-[#ffcda2] text-sm edu-nsw-act-cursive">
+                Test how well you know your friends!
+              </p>
+
               {/* Progress indicator */}
-              <div className="relative bg-gray-800/30 rounded-full h-2 mb-3 overflow-hidden">
+              <div className="relative bg-gray-800/30 rounded-full h-2 mb-3 overflow-hidden mt-4">
                 <div
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all duration-500 ease-out"
+                  className="bg-[#ffcda2] h-full rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${(gameState.selectedFriends.length / 5) * 100}%`,
                   }}
                 ></div>
               </div>
 
-              <div className="text-xs text-purple-300">
+              <div className="text-xs text-[#ffcda2]">
                 {gameState.selectedFriends.length}/5 Selected
               </div>
             </div>
@@ -500,7 +508,7 @@ export default function WhoCast() {
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <svg
-                  className="h-5 w-5 text-purple-300"
+                  className="h-5 w-5 text-[#ffcda2]"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -518,21 +526,21 @@ export default function WhoCast() {
                 placeholder="Search your friends..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm border border-purple-400/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
+                className="block w-full pl-10 pr-4 py-3 bg-black/50 backdrop-blur-sm border border-[#ffcda2]/30 rounded-xl text-white placeholder-[#ffcda2]/50 focus:outline-none focus:ring-2 focus:ring-[#ffcda2] focus:border-transparent transition-all duration-200"
               />
             </div>
 
             {/* Selected Users */}
             {gameState.selectedFriends.length > 0 && (
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 p-3">
-                <h3 className="text-sm font-medium text-white mb-2">
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl border border-[#ffcda2]/30 p-3">
+                <h3 className="text-sm font-medium text-white mb-2 edu-nsw-act-cursive">
                   Selected Users:
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {gameState.selectedFriends.map((friend) => (
                     <div
                       key={friend.user.fid}
-                      className="flex items-center bg-purple-500/20 rounded-lg px-2 py-1"
+                      className="flex items-center bg-[#ffcda2]/20 rounded-lg px-2 py-1"
                     >
                       <img
                         src={friend.user.pfp_url}
@@ -544,7 +552,7 @@ export default function WhoCast() {
                       </span>
                       <button
                         onClick={() => toggleFriend(friend)}
-                        className="ml-1 text-purple-300 hover:text-white text-xs"
+                        className="ml-1 text-[#ffcda2] hover:text-white text-xs"
                       >
                         ×
                       </button>
@@ -555,16 +563,21 @@ export default function WhoCast() {
             )}
 
             {/* Users List */}
-            <div className="flex flex-col h-screen bg-white/5 backdrop-blur-sm rounded-xl border border-purple-400/20 overflow-hidden">
+            <div
+              className="flex flex-col bg-black/50 backdrop-blur-sm rounded-xl border border-[#ffcda2]/30 overflow-hidden"
+              style={{ height: "calc(100vh - 300px)" }}
+            >
               <div className="flex-1 overflow-y-auto p-3">
                 {searching ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin h-6 w-6 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-3"></div>
-                    <div className="text-purple-300 text-sm">Searching...</div>
+                    <div className="animate-spin h-6 w-6 border-2 border-[#ffcda2] border-t-transparent rounded-full mx-auto mb-3"></div>
+                    <div className="text-[#ffcda2] text-sm edu-nsw-act-cursive">
+                      Searching...
+                    </div>
                   </div>
                 ) : filteredUsers.length === 0 ? (
                   <div className="text-center py-8">
-                    <div className="text-purple-300 text-sm">
+                    <div className="text-[#ffcda2] text-sm edu-nsw-act-cursive">
                       {searchQuery.trim()
                         ? "No users found"
                         : "Type to search your friends..."}
@@ -586,8 +599,8 @@ export default function WhoCast() {
                           }
                           className={`group relative flex items-center p-3 rounded-lg border transition-all duration-200 ${
                             isSelected
-                              ? "bg-purple-500/20 border-purple-400"
-                              : "bg-white/5 border-purple-400/20 hover:border-purple-400/40 hover:bg-white/10"
+                              ? "bg-[#ffcda2]/20 border-[#ffcda2]"
+                              : "bg-black/30 border-[#ffcda2]/30 hover:border-[#ffcda2]/50 hover:bg-black/50"
                           } ${
                             !isSelected && gameState.selectedFriends.length >= 5
                               ? "opacity-50 cursor-not-allowed"
@@ -598,11 +611,11 @@ export default function WhoCast() {
                             <img
                               src={friend.user.pfp_url}
                               alt={friend.user.display_name}
-                              className="w-10 h-10 rounded-full mr-3 ring-1 ring-purple-400/30"
+                              className="w-10 h-10 rounded-full mr-3 ring-1 ring-[#ffcda2]/30"
                             />
                             {isSelected && (
-                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#ffcda2] rounded-full flex items-center justify-center">
+                                <span className="text-black text-xs font-bold">
                                   ✓
                                 </span>
                               </div>
@@ -612,7 +625,7 @@ export default function WhoCast() {
                             <div className="font-medium text-white text-sm truncate">
                               {friend.user.display_name}
                             </div>
-                            <div className="text-purple-200 text-xs truncate">
+                            <div className="text-[#ffcda2] text-xs truncate">
                               @{friend.user.username}
                             </div>
                           </div>
@@ -623,11 +636,11 @@ export default function WhoCast() {
                 )}
               </div>
               {!gameState.gameStarted && !loading && (
-                <div className="p-3 border-t border-purple-400/20">
+                <div className="p-3 border-t border-[#ffcda2]/20">
                   <Button
                     onClick={() => generateQuiz(gameState.selectedFriends)}
                     disabled={gameState.selectedFriends.length < 5}
-                    className="w-full py-3 text-lg font-bold bg-purple-600 hover:bg-purple-700 transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    className="w-full py-3 text-lg font-bold bg-[#ffcda2] hover:bg-[#ffcda2]/80 text-black transition-all duration-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg edu-nsw-act-cursive"
                   >
                     Start Quiz ({gameState.selectedFriends.length}/5)
                   </Button>
@@ -647,24 +660,24 @@ export default function WhoCast() {
             <div className="space-y-6">
               {/* Game Header */}
               <div className="text-center">
-                <div className="flex justify-center items-center space-x-4 mb-6">
-                  <div className="bg-gradient-to-r from-purple-500/30 to-pink-500/30 backdrop-blur-sm px-6 py-3 rounded-2xl border border-purple-400/30">
-                    <span className="text-white font-bold text-lg">
-                      Question {gameState.currentQuestionIndex + 1} of{" "}
+                <div className="flex justify-center items-center space-x-3 mb-4">
+                  <div className="bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg border border-[#ffcda2]/30">
+                    <span className="text-white font-medium text-sm edu-nsw-act-cursive">
+                      {gameState.currentQuestionIndex + 1} /{" "}
                       {gameState.questions.length}
                     </span>
                   </div>
-                  <div className="bg-gradient-to-r from-green-500/30 to-blue-500/30 backdrop-blur-sm px-6 py-3 rounded-2xl border border-green-400/30">
-                    <span className="text-white font-bold text-lg">
+                  <div className="bg-black/50 backdrop-blur-sm px-4 py-2 rounded-lg border border-[#ffcda2]/30">
+                    <span className="text-white font-medium text-sm edu-nsw-act-cursive">
                       Score: {gameState.score}
                     </span>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
-                <div className="relative bg-gray-800/50 rounded-full h-2 mb-6 overflow-hidden">
+                <div className="relative bg-gray-800/50 rounded-full h-1 mb-4 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full transition-all duration-500 ease-out"
+                    className="bg-[#ffcda2] h-full rounded-full transition-all duration-500 ease-out"
                     style={{
                       width: `${
                         ((gameState.currentQuestionIndex + 1) /
@@ -674,44 +687,17 @@ export default function WhoCast() {
                     }}
                   ></div>
                 </div>
-
-                {/* Streak Indicator */}
-                <div className="flex justify-center items-center space-x-2 mb-4">
-                  <span className="text-purple-200 text-sm font-medium">
-                    Current Streak:
-                  </span>
-                  <div className="flex space-x-1">
-                    {Array.from(
-                      { length: Math.min(gameState.score, 5) },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"
-                        ></div>
-                      )
-                    )}
-                    {Array.from(
-                      { length: Math.max(0, 5 - gameState.score) },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className="w-3 h-3 bg-gray-600 rounded-full"
-                        ></div>
-                      )
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Cast Card */}
-              <div className="bg-white/10 backdrop-blur-sm border-2 border-purple-400/30 rounded-2xl p-6 shadow-2xl">
-                <div className="text-center mb-4">
-                  <span className="text-xs font-bold text-purple-300 uppercase tracking-wider">
-                    Cast Text
+              <div className="bg-black/50 backdrop-blur-sm border border-[#ffcda2]/30 rounded-xl p-4 shadow-lg">
+                <div className="text-center mb-3">
+                  <span className="text-xs font-medium text-[#ffcda2] uppercase tracking-wider edu-nsw-act-cursive">
+                    Cast
                   </span>
                 </div>
-                <div className="bg-white/5 rounded-xl p-4 border border-purple-400/20">
-                  <p className="text-xl leading-relaxed text-white font-medium italic">
+                <div className="bg-black/30 rounded-lg p-3 border border-[#ffcda2]/20">
+                  <p className="text-lg leading-relaxed text-white font-medium italic">
                     &ldquo;{currentQuestion.cast.text}&rdquo;
                   </p>
                 </div>
@@ -719,10 +705,10 @@ export default function WhoCast() {
 
               {/* Question */}
               <div className="text-center">
-                <h3 className="text-2xl font-black text-white mb-3">
-                  Who wrote this cast? 🤔
+                <h3 className="text-xl font-bold text-white mb-2 edu-nsw-act-cursive">
+                  Who wrote this cast?
                 </h3>
-                <p className="text-purple-200 font-medium">
+                <p className="text-[#ffcda2] font-medium text-sm edu-nsw-act-cursive">
                   Tap on the friend you think wrote this cast
                 </p>
               </div>
@@ -733,25 +719,25 @@ export default function WhoCast() {
                   <button
                     key={friend.user.fid}
                     onClick={() => selectAnswer(friend)}
-                    className="group flex items-center w-full p-5 rounded-2xl border-2 border-purple-400/30 hover:border-purple-400 hover:bg-white/10 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl"
+                    className="group flex items-center w-full p-4 rounded-lg border border-[#ffcda2]/30 hover:border-[#ffcda2] hover:bg-black/30 transition-all duration-300 transform hover:scale-102 shadow-md hover:shadow-lg"
                   >
                     <div className="relative">
                       <img
                         src={friend.user.pfp_url}
                         alt={friend.user.display_name}
-                        className="w-16 h-16 rounded-full mr-5 ring-2 ring-purple-400/50 transition-all duration-300 group-hover:ring-purple-400"
+                        className="w-12 h-12 rounded-full mr-4 ring-1 ring-[#ffcda2]/50 transition-all duration-300 group-hover:ring-[#ffcda2]"
                       />
-                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
+                      <div className="absolute -inset-1 bg-[#ffcda2] rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
                     <div className="text-left flex-1 min-w-0">
-                      <div className="font-bold text-white text-xl truncate">
+                      <div className="font-bold text-white text-lg truncate edu-nsw-act-cursive">
                         {friend.user.display_name}
                       </div>
-                      <div className="text-purple-200 font-medium truncate">
+                      <div className="text-[#ffcda2] font-medium truncate text-sm">
                         @{friend.user.username}
                       </div>
                     </div>
-                    <div className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="text-[#ffcda2] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <svg
                         className="w-8 h-8"
                         fill="none"
@@ -777,14 +763,14 @@ export default function WhoCast() {
           <div className="space-y-8">
             {/* Results Header */}
             <div className="text-center">
-              <div className="bg-gradient-to-r from-green-500/30 to-blue-500/30 backdrop-blur-sm rounded-3xl p-8 mb-6 border border-green-400/30 shadow-2xl">
-                <h2 className="text-4xl font-black text-white mb-6">
-                  Quiz Complete! 🎉
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl p-6 mb-6 border border-[#ffcda2]/30 shadow-lg">
+                <h2 className="text-3xl font-bold text-white mb-4 edu-nsw-act-cursive">
+                  Quiz Complete!
                 </h2>
-                <div className="text-8xl font-black bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent mb-4 animate-pulse">
+                <div className="text-6xl font-bold text-[#ffcda2] mb-3 animate-pulse edu-nsw-act-cursive">
                   {gameState.score}/{gameState.questions.length}
                 </div>
-                <div className="text-2xl text-white font-bold mb-3">
+                <div className="text-xl text-white font-bold mb-3 edu-nsw-act-cursive">
                   {Math.round(
                     (gameState.score / gameState.questions.length) * 100
                   )}
@@ -794,237 +780,184 @@ export default function WhoCast() {
                 {/* Achievement Badge */}
                 <div className="mb-4">
                   {gameState.score === gameState.questions.length ? (
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500/30 to-orange-500/30 rounded-full border border-yellow-400/50">
-                      <span className="text-2xl mr-2">🏆</span>
-                      <span className="text-yellow-200 font-bold">
+                    <div className="inline-flex items-center px-4 py-2 bg-[#ffcda2]/20 rounded-full border border-[#ffcda2]/50">
+                      <span className="text-[#ffcda2] font-bold edu-nsw-act-cursive">
                         Perfect Score!
                       </span>
                     </div>
                   ) : gameState.score >= gameState.questions.length * 0.8 ? (
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full border border-blue-400/50">
-                      <span className="text-2xl mr-2">🎉</span>
-                      <span className="text-blue-200 font-bold">
+                    <div className="inline-flex items-center px-4 py-2 bg-[#ffcda2]/20 rounded-full border border-[#ffcda2]/50">
+                      <span className="text-[#ffcda2] font-bold edu-nsw-act-cursive">
                         Excellent!
                       </span>
                     </div>
                   ) : gameState.score >= gameState.questions.length * 0.6 ? (
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500/30 to-teal-500/30 rounded-full border border-green-400/50">
-                      <span className="text-2xl mr-2">👍</span>
-                      <span className="text-green-200 font-bold">
+                    <div className="inline-flex items-center px-4 py-2 bg-[#ffcda2]/20 rounded-full border border-[#ffcda2]/50">
+                      <span className="text-[#ffcda2] font-bold edu-nsw-act-cursive">
                         Good Job!
                       </span>
                     </div>
                   ) : (
-                    <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500/30 to-red-500/30 rounded-full border border-orange-400/50">
-                      <span className="text-2xl mr-2">🤔</span>
-                      <span className="text-orange-200 font-bold">
+                    <div className="inline-flex items-center px-4 py-2 bg-[#ffcda2]/20 rounded-full border border-[#ffcda2]/50">
+                      <span className="text-[#ffcda2] font-bold edu-nsw-act-cursive">
                         Keep Trying!
                       </span>
                     </div>
                   )}
                 </div>
-                <p className="text-purple-200 font-semibold text-lg">
+                <p className="text-[#ffcda2] font-semibold text-lg edu-nsw-act-cursive">
                   {gameState.score === gameState.questions.length
-                    ? "Perfect score! 🏆 You're a friend expert!"
+                    ? "Perfect score! You're a friend expert!"
                     : gameState.score >= gameState.questions.length * 0.8
-                    ? "Great job! 🎉 You know your friends well!"
+                    ? "Great job! You know your friends well!"
                     : gameState.score >= gameState.questions.length * 0.6
-                    ? "Not bad! 👍 You're getting there!"
-                    : "Better luck next time! 🤔 Keep practicing!"}
+                    ? "Not bad! You're getting there!"
+                    : "Better luck next time! Keep Playing!"}
                 </p>
               </div>
             </div>
 
             {/* Friend Performance Breakdown */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-purple-400/30">
-              <h3 className="text-2xl font-black text-white mb-6 text-center">
-                Friend Performance Breakdown 👥
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                {gameState.selectedFriends.map((friend) => {
-                  const friendQuestions = gameState.questions.filter(
-                    (q) => q.correctFriend.user.fid === friend.user.fid
-                  );
-                  const correctGuesses = friendQuestions.filter((q) => {
-                    const selectedFid = gameState.answers[q.cast.hash];
-                    return selectedFid === friend.user.fid;
-                  }).length;
-                  const totalQuestions = friendQuestions.length;
-                  const accuracy =
-                    totalQuestions > 0
-                      ? Math.round((correctGuesses / totalQuestions) * 100)
-                      : 0;
 
-                  return (
-                    <div
-                      key={friend.user.fid}
-                      className="flex items-center p-4 rounded-xl border border-purple-400/30 bg-white/5 backdrop-blur-sm"
-                    >
-                      <img
-                        src={friend.user.pfp_url}
-                        alt={friend.user.display_name}
-                        className="w-12 h-12 rounded-full mr-4 ring-2 ring-purple-400/50"
-                      />
-                      <div className="flex-1">
-                        <div className="font-bold text-white text-lg">
-                          {friend.user.display_name}
-                        </div>
-                        <div className="text-purple-200 font-medium">
-                          @{friend.user.username}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-white font-bold text-lg">
-                            {correctGuesses}/{totalQuestions}
-                          </span>
-                          <span
-                            className={`text-2xl font-black ${
-                              accuracy === 100
-                                ? "text-green-400"
-                                : accuracy >= 80
-                                ? "text-blue-400"
-                                : accuracy >= 60
-                                ? "text-yellow-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {accuracy}%
-                          </span>
-                        </div>
-                        <div className="flex items-center mt-2">
-                          {correctGuesses > 0 && (
-                            <span className="text-green-400 mr-2 text-lg">
-                              ✓
-                            </span>
-                          )}
-                          {totalQuestions - correctGuesses > 0 && (
-                            <span className="text-red-400 mr-2 text-lg">✗</span>
-                          )}
-                          <span className="text-xs text-purple-300">
-                            {correctGuesses > 0 && `${correctGuesses} correct`}
-                            {correctGuesses > 0 &&
-                              totalQuestions - correctGuesses > 0 &&
-                              " • "}
-                            {totalQuestions - correctGuesses > 0 &&
-                              `${totalQuestions - correctGuesses} wrong`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Detailed Answers */}
+            {/* Detailed Answers Toggle */}
             <div className="space-y-4">
-              <h3 className="font-black text-white text-xl">
-                Detailed Answers:
-              </h3>
-              {gameState.questions.map((question, index) => {
-                const selectedFid = gameState.answers[question.cast.hash];
-                const isCorrect =
-                  selectedFid === question.correctFriend.user.fid;
-                const selectedFriend = gameState.selectedFriends.find(
-                  (f) => f.user.fid === selectedFid
-                );
-
-                return (
-                  <div
-                    key={question.cast.hash}
-                    className={`p-5 rounded-2xl border-2 backdrop-blur-sm ${
-                      isCorrect
-                        ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/50"
-                        : "bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-400/50"
+              <button
+                onClick={() => setShowDetailedAnswers(!showDetailedAnswers)}
+                className="w-full flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm rounded-xl border border-[#ffcda2]/30 hover:bg-black/70 transition-all duration-300"
+              >
+                <h3 className="font-bold text-white text-lg edu-nsw-act-cursive">
+                  View Detailed Answers
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[#ffcda2] text-sm">
+                    {showDetailedAnswers ? "Hide" : "Show"}
+                  </span>
+                  <svg
+                    className={`w-5 h-5 text-[#ffcda2] transition-transform duration-300 ${
+                      showDetailedAnswers ? "rotate-180" : ""
                     }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center">
-                        <span
-                          className={`text-2xl font-black mr-3 ${
-                            isCorrect ? "text-green-400" : "text-red-400"
-                          }`}
-                        >
-                          {isCorrect ? "✓" : "✗"}
-                        </span>
-                        <span className="text-purple-200 font-bold">
-                          Question {index + 1}
-                        </span>
-                      </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </button>
+
+              {/* Detailed Answers Content */}
+              {showDetailedAnswers && (
+                <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                  {gameState.questions.map((question, index) => {
+                    const selectedFid = gameState.answers[question.cast.hash];
+                    const isCorrect =
+                      selectedFid === question.correctFriend.user.fid;
+                    const selectedFriend = gameState.selectedFriends.find(
+                      (f) => f.user.fid === selectedFid
+                    );
+
+                    return (
                       <div
-                        className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        key={question.cast.hash}
+                        className={`p-4 rounded-xl border backdrop-blur-sm ${
                           isCorrect
-                            ? "bg-green-500/30 text-green-300 border border-green-400/50"
-                            : "bg-red-500/30 text-red-300 border border-red-400/50"
+                            ? "border-[#ffcda2]/30 bg-[#ffcda2]/10"
+                            : "border-red-400/30 bg-red-500/10"
                         }`}
                       >
-                        {isCorrect ? "Correct" : "Wrong"}
-                      </div>
-                    </div>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center">
+                            <span
+                              className={`text-2xl font-black mr-3 ${
+                                isCorrect ? "text-[#ffcda2]" : "text-red-400"
+                              }`}
+                            >
+                              {isCorrect ? "✓" : "✗"}
+                            </span>
+                            <span className="text-[#ffcda2] font-bold edu-nsw-act-cursive">
+                              Question {index + 1}
+                            </span>
+                          </div>
+                          <div
+                            className={`px-3 py-1 rounded-full text-sm font-bold ${
+                              isCorrect
+                                ? "bg-[#ffcda2]/30 text-[#ffcda2] border border-[#ffcda2]/50"
+                                : "bg-red-500/30 text-red-300 border border-red-400/50"
+                            }`}
+                          >
+                            {isCorrect ? "Correct" : "Wrong"}
+                          </div>
+                        </div>
 
-                    <div className="bg-white/5 rounded-xl p-4 mb-4 border border-purple-400/20">
-                      <div className="text-purple-200 italic font-medium">
-                        &ldquo;{question.cast.text}&rdquo;
-                      </div>
-                    </div>
+                        <div className="bg-black/30 rounded-lg p-3 mb-3 border border-[#ffcda2]/20">
+                          <div className="text-white italic font-medium">
+                            &ldquo;{question.cast.text}&rdquo;
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <img
-                          src={
-                            selectedFriend?.user.pfp_url ||
-                            question.correctFriend.user.pfp_url
-                          }
-                          alt={
-                            selectedFriend?.user.display_name ||
-                            question.correctFriend.user.display_name
-                          }
-                          className="w-10 h-10 rounded-full mr-3 ring-2 ring-purple-400/50"
-                        />
-                        <div>
-                          <div className="text-white font-bold">
-                            You guessed:{" "}
-                            {selectedFriend?.user.display_name || "Unknown"}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <img
+                              src={
+                                selectedFriend?.user.pfp_url ||
+                                question.correctFriend.user.pfp_url
+                              }
+                              alt={
+                                selectedFriend?.user.display_name ||
+                                question.correctFriend.user.display_name
+                              }
+                              className="w-10 h-10 rounded-full mr-3 ring-2 ring-[#ffcda2]/50"
+                            />
+                            <div>
+                              <div className="text-white font-bold edu-nsw-act-cursive">
+                                You guessed:{" "}
+                                {selectedFriend?.user.display_name || "Unknown"}
+                              </div>
+                              {!isCorrect && (
+                                <div className="text-[#ffcda2] text-sm edu-nsw-act-cursive">
+                                  Correct:{" "}
+                                  {question.correctFriend.user.display_name}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           {!isCorrect && (
-                            <div className="text-purple-300 text-sm">
-                              Correct:{" "}
-                              {question.correctFriend.user.display_name}
+                            <div className="flex items-center">
+                              <img
+                                src={question.correctFriend.user.pfp_url}
+                                alt={question.correctFriend.user.display_name}
+                                className="w-10 h-10 rounded-full mr-2 ring-2 ring-[#ffcda2]/50"
+                              />
+                              <span className="text-[#ffcda2] text-sm font-medium">
+                                {question.correctFriend.user.display_name}
+                              </span>
                             </div>
                           )}
                         </div>
                       </div>
-                      {!isCorrect && (
-                        <div className="flex items-center">
-                          <img
-                            src={question.correctFriend.user.pfp_url}
-                            alt={question.correctFriend.user.display_name}
-                            className="w-10 h-10 rounded-full mr-2 ring-2 ring-green-400/50"
-                          />
-                          <span className="text-green-300 text-sm font-medium">
-                            {question.correctFriend.user.display_name}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-4">
               <Button
                 onClick={resetGame}
-                className="w-full py-5 text-xl font-black bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 transform hover:scale-105 transition-all duration-300 shadow-2xl rounded-2xl"
+                className="w-full py-5 text-xl font-black bg-[#ffcda2] hover:bg-[#ffcda2]/80 text-black transform hover:scale-105 transition-all duration-300 shadow-lg rounded-xl edu-nsw-act-cursive"
               >
-                🎮 Play Again
+                Play Again
               </Button>
 
               {context?.user?.fid && (
                 <ShareButton
-                  buttonText="📤 Share My Results"
+                  buttonText="Share My Results"
                   cast={{
                     text: generateShareText(),
                     embeds: [
@@ -1034,7 +967,7 @@ export default function WhoCast() {
                       },
                     ],
                   }}
-                  className="w-full py-5 text-xl font-black bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-300 shadow-2xl rounded-2xl"
+                  className="w-full py-5 text-xl font-black bg-[#ffcda2] hover:bg-[#ffcda2]/80 text-black transform hover:scale-105 transition-all duration-300 shadow-lg rounded-xl edu-nsw-act-cursive"
                 />
               )}
             </div>

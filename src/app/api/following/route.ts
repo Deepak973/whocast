@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q") || "";
   const limit = searchParams.get("limit") || "50";
+  const cursor = searchParams.get("cursor") || "";
   const fidParam = searchParams.get("fid");
 
   if (!apiKey) {
@@ -28,24 +29,28 @@ export async function GET(request: Request) {
   try {
     const neynar = new NeynarAPIClient({ apiKey });
 
-    // Fetch user's following list
-    const { users } = await neynar.fetchUserFollowing({
+    // Fetch user's following list with cursor
+    const response = await neynar.fetchUserFollowing({
       fid: fid,
       limit: parseInt(limit),
+      cursor: cursor || undefined,
     });
 
     // Filter users based on search query if provided
-    let filteredUsers = users;
+    let filteredUsers = response.users;
     if (query.trim()) {
       const searchLower = query.toLowerCase();
-      filteredUsers = users.filter(
+      filteredUsers = response.users.filter(
         (user) =>
           user.user?.username?.toLowerCase().includes(searchLower) ||
           user.user?.display_name?.toLowerCase().includes(searchLower)
       );
     }
 
-    return NextResponse.json({ users: filteredUsers });
+    return NextResponse.json({
+      users: filteredUsers,
+      nextCursor: (response as { nextCursor?: string }).nextCursor || null,
+    });
   } catch (error) {
     console.error("Failed to fetch following:", error);
     return NextResponse.json(

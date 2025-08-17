@@ -55,63 +55,108 @@ export default function WhoCast() {
     gameFinished: false,
     answers: {},
   });
+  const [allUsers, setAllUsers] = useState<Friend[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<Friend[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Search users based on query
+  // Fetch all friends (500 users) on component mount with cursor pagination
   useEffect(() => {
-    const searchUsers = async () => {
-      if (!searchQuery.trim()) {
-        setFilteredUsers([]);
-        setSearching(false);
-        return;
-      }
+    const fetchAllFriends = async () => {
+      if (!context?.user?.fid) return;
 
-      setSearching(true);
+      setLoading(true);
       setError(null);
 
       try {
-        const response = await fetch(
-          `/api/following?q=${encodeURIComponent(searchQuery)}&limit=50&fid=${
-            context?.user?.fid
-          }`
-        );
+        const allUsers: Friend[] = [];
+        let cursor = "";
+        let hasMore = true;
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error(`User search API error:`, errorData);
-          throw new Error(
-            `Failed to search users: ${errorData.error || response.statusText}`
+        // Fetch 500 users by making API calls with cursor pagination
+        while (allUsers.length < 500 && hasMore) {
+          const response = await fetch(
+            `/api/following?limit=100&fid=${context.user.fid}&cursor=${cursor}`
           );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error(`Friends API error:`, errorData);
+            throw new Error(
+              `Failed to fetch friends: ${
+                errorData.error || response.statusText
+              }`
+            );
+          }
+
+          const data = await response.json();
+          const userList = data.users || [];
+
+          // Add unique users only (avoid duplicates)
+          const uniqueUsers = userList.filter(
+            (newUser: Friend) =>
+              !allUsers.some(
+                (existingUser) => existingUser.user.fid === newUser.user.fid
+              )
+          );
+
+          allUsers.push(...uniqueUsers);
+
+          // Update cursor for next page
+          cursor = data.nextCursor || "";
+          hasMore = !!data.nextCursor && userList.length === 100;
+
+          // If we got less than 100 users, we've reached the end
+          if (userList.length < 100) break;
         }
 
-        const data = await response.json();
-        const userList = data.users || [];
-        console.log("Search results:", userList);
-        setFilteredUsers(userList);
+        console.log("Total unique friends fetched:", allUsers.length);
+        setAllUsers(allUsers);
+        setFilteredUsers(allUsers);
       } catch (err) {
-        console.error("Error searching users:", err);
-        setError(err instanceof Error ? err.message : "Failed to search users");
+        console.error("Error fetching friends:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch friends"
+        );
         setFilteredUsers([]);
       } finally {
-        setSearching(false);
+        setLoading(false);
       }
     };
 
-    // Debounce the search to avoid too many API calls
-    const timeoutId = setTimeout(() => {
-      if (searchQuery.trim()) {
-        searchUsers();
-      } else {
-        setSearching(false);
-      }
-    }, 300);
+    fetchAllFriends();
+  }, [context?.user?.fid]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, context?.user?.fid]);
+  // Filter users based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // Show all users when no search query
+      setFilteredUsers(allUsers);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+    setError(null);
+
+    try {
+      const searchLower = searchQuery.toLowerCase();
+      const filtered = allUsers.filter(
+        (user) =>
+          user.user?.username?.toLowerCase().includes(searchLower) ||
+          user.user?.display_name?.toLowerCase().includes(searchLower)
+      );
+
+      setFilteredUsers(filtered);
+    } catch (err) {
+      console.error("Error filtering users:", err);
+      setError("Failed to filter users");
+    } finally {
+      setSearching(false);
+    }
+  }, [searchQuery, allUsers]);
 
   // Generate quiz questions
   const generateQuiz = useCallback(async (selectedFriends: Friend[]) => {
@@ -385,7 +430,7 @@ export default function WhoCast() {
         ></div>
       </div>
 
-      <div className="relative z-10 mx-auto py-4 px-4 pb-24 max-w-sm">
+      <div className="relative z-10 mx-auto py-2 px-4 pb-24 max-w-sm">
         {/* Header */}
         <Header />
 
@@ -453,9 +498,9 @@ export default function WhoCast() {
 
             {/* Search Bar */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <svg
-                  className="h-4 w-4 text-purple-300"
+                  className="h-5 w-5 text-purple-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -470,10 +515,10 @@ export default function WhoCast() {
               </div>
               <input
                 type="text"
-                placeholder="Search users by username..."
+                placeholder="Search your friends..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm border border-purple-400/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
+                className="block w-full pl-10 pr-4 py-3 bg-white/5 backdrop-blur-sm border border-purple-400/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
               />
             </div>
 
@@ -522,7 +567,7 @@ export default function WhoCast() {
                     <div className="text-purple-300 text-sm">
                       {searchQuery.trim()
                         ? "No users found"
-                        : "Search for users by username..."}
+                        : "Type to search your friends..."}
                     </div>
                   </div>
                 ) : (
@@ -563,11 +608,11 @@ export default function WhoCast() {
                               </div>
                             )}
                           </div>
-                          <div className="text-left flex-1">
-                            <div className="font-medium text-white text-sm">
+                          <div className="text-left flex-1 min-w-0">
+                            <div className="font-medium text-white text-sm truncate">
                               {friend.user.display_name}
                             </div>
-                            <div className="text-purple-200 text-xs">
+                            <div className="text-purple-200 text-xs truncate">
                               @{friend.user.username}
                             </div>
                           </div>
@@ -698,11 +743,11 @@ export default function WhoCast() {
                       />
                       <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"></div>
                     </div>
-                    <div className="text-left flex-1">
-                      <div className="font-bold text-white text-xl">
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="font-bold text-white text-xl truncate">
                         {friend.user.display_name}
                       </div>
-                      <div className="text-purple-200 font-medium">
+                      <div className="text-purple-200 font-medium truncate">
                         @{friend.user.username}
                       </div>
                     </div>
